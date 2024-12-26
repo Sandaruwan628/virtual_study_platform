@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whiteboard List</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #e3f2fd, #f4f6f9);
+        }
+        main {
+            flex: 1;
+            padding: 40px 20px;
+        }
+        .whiteboard-list {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px;
+            background: linear-gradient(135deg, #ffffff, #f9f9f9);
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        .whiteboard-list h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 30px;
+        }
+        .whiteboard-list .list-group-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .whiteboard-list .list-group-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+        .whiteboard-list .list-group-item strong {
+            font-size: 1.2rem;
+            color: #007bff;
+        }
+        .whiteboard-list .list-group-item span {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .whiteboard-list a.btn {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 8px;
+            transition: background 0.3s, transform 0.2s;
+        }
+        .whiteboard-list a.btn-primary {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+        }
+        .whiteboard-list a.btn-primary:hover {
+            background: linear-gradient(135deg, #0056b3, #003c82);
+            transform: translateY(-3px);
+        }
+        .whiteboard-list a.btn-outline-primary {
+            border: 1px solid #007bff;
+            color: #007bff;
+        }
+        .whiteboard-list a.btn-outline-primary:hover {
+            background: #007bff;
+            color: white;
+            transform: translateY(-3px);
+        }
+        footer {
+            background-color: #343a40;
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+        }
+        footer span {
+            color: white !important;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-graduation-cap me-2"></i>Virtual Study Platform
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a href="{% url 'logout' %}" class="btn btn-outline-light"><i class="fas fa-sign-out-alt me-1"></i>Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container">
+        <div class="whiteboard-list" data-aos="fade-up">
+            <h1><i class="fas fa-chalkboard me-2"></i>Available Whiteboards</h1>
+            <div class="text-end mb-3">
+                <a href="{% url 'create_whiteboard' %}" class="btn btn-primary">
+                    <i class="fas fa-plus-circle me-2"></i>Create New Whiteboard
+                </a>
+            </div>
+            <ul class="list-group">
+                {% for whiteboard in whiteboards %}
+                    <li class="list-group-item">
+                        <div>
+                            <strong><i class="fas fa-chalkboard me-2"></i>{{ whiteboard.name }}</strong><br>
+                            <span>Created by {{ whiteboard.created_by.username }} on {{ whiteboard.created_at }}</span>
+                        </div>
+                        <a href="{% url 'whiteboard' whiteboard.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-right me-2"></i>Access
+                        </a>
+                    </li>
+                {% empty %}
+                    <li class="list-group-item text-center text-muted">
+                        <i class="fas fa-exclamation-circle me-2"></i>No whiteboards available.
+                    </li>
+                {% endfor %}
+            </ul>
+            <div class="text-center mt-4">
+                <a href="{% url 'student_dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Go Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center">
+        <div class="container">
+            <p class="mb-0">&copy; 2024 Virtual Study Platform - All Rights Reserved</p>
+            <div class="mt-2">
+                <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="text-white me-3"><i class="fab fa-linkedin-in"></i></a>
+                <a href="#" class="text-white"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true
+        });
+    </script>
+</body>
+</html>

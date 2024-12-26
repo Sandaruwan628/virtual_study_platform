@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whiteboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #e3f2fd, #f4f6f9);
+        }
+        main {
+            flex: 1;
+            padding: 20px;
+        }
+        .whiteboard-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #ffffff, #f9f9f9);
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        .whiteboard-header h1 {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #007bff;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .whiteboard-header p {
+            font-size: 1rem;
+            color: #6c757d;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        canvas {
+            display: block;
+            margin: 20px auto;
+            border: 2px solid #007bff;
+            border-radius: 10px;
+            background-color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .exit-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1rem;
+            color: #007bff;
+            font-weight: bold;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .exit-link:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+        footer {
+            background-color: #343a40;
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+        }
+        footer span {
+            color: white !important;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-chalkboard me-2"></i>Virtual Study Platform
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a href="{% url 'logout' %}" class="btn btn-outline-light"><i class="fas fa-sign-out-alt me-1"></i>Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <div class="whiteboard-container" data-aos="fade-up">
+            <div class="whiteboard-header">
+                <h1><i class="fas fa-chalkboard me-2"></i>Whiteboard: {{ whiteboard.name }}</h1>
+                <p>Created by: {{ whiteboard.created_by.username }} on {{ whiteboard.created_at }}</p>
+            </div>
+            <canvas id="canvas" width="800" height="600"></canvas>
+            <a href="{% url 'list_whiteboards' %}" class="exit-link">
+                <i class="fas fa-arrow-left me-2"></i>Exit to Whiteboard List
+            </a>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center">
+        <div class="container">
+            <p class="mb-0">&copy; 2024 Virtual Study Platform - All Rights Reserved</p>
+            <div class="mt-2">
+                <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="text-white me-3"><i class="fab fa-linkedin-in"></i></a>
+                <a href="#" class="text-white"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // WebSocket setup
+        const boardId = {{ whiteboard.id }};
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+
+        const wsUrl = `ws://${window.location.host}/ws/whiteboard/${boardId}/`;
+        const socket = new WebSocket(wsUrl);
+
+        // Drawing state
+        let drawing = false;
+        let currentX = 0;
+        let currentY = 0;
+
+        // Start drawing
+        function startDrawing(e) {
+            drawing = true;
+            currentX = e.offsetX;
+            currentY = e.offsetY;
+        }
+
+        // Draw and send data
+        function draw(e) {
+            if (!drawing) return;
+
+            const x = e.offsetX;
+            const y = e.offsetY;
+
+            // Draw locally on the canvas
+            ctx.beginPath();
+            ctx.moveTo(currentX, currentY);
+            ctx.lineTo(x, y);
+            ctx.strokeStyle = "#007bff";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Send the drawing data to the server
+            const data = {
+                x1: currentX,
+                y1: currentY,
+                x2: x,
+                y2: y,
+            };
+            socket.send(JSON.stringify(data));
+
+            currentX = x;
+            currentY = y;
+        }
+
+        // Stop drawing
+        function stopDrawing() {
+            drawing = false;
+        }
+
+        // Event listeners for drawing
+        canvas.addEventListener("mousedown", startDrawing);
+        canvas.addEventListener("mousemove", draw);
+        canvas.addEventListener("mouseup", stopDrawing);
+        canvas.addEventListener("mouseleave", stopDrawing);
+
+        // WebSocket events
+        socket.onmessage = function (event) {
+            const data = JSON.parse(event.data);
+
+            // Draw received data on canvas
+            ctx.beginPath();
+            ctx.moveTo(data.x1, data.y1);
+            ctx.lineTo(data.x2, data.y2);
+            ctx.strokeStyle = "#28a745";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        };
+
+        socket.onopen = function () {
+            console.log("WebSocket connection established");
+        };
+
+        socket.onclose = function () {
+            console.log("WebSocket connection closed");
+        };
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true
+        });
+    </script>
+</body>
+</html>
